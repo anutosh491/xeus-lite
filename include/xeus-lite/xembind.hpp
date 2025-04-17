@@ -41,16 +41,34 @@ namespace xeus
     xeus::xserver * get_server(xeus::xkernel * kernel);
 
     template<class interpreter_type>
-    std::unique_ptr<xkernel> make_xkernel()
+    std::unique_ptr<xkernel> make_xkernel(ems::val js_argv)
     {
         xeus::xconfiguration config;
 
         using history_manager_ptr = std::unique_ptr<xeus::xhistory_manager>;
         history_manager_ptr hist = xeus::make_in_memory_history_manager();
 
-        using interpreter_ptr = std::unique_ptr<interpreter_type>;
-        
-        auto interpreter = interpreter_ptr(new interpreter_type());
+        std::vector<std::string> args = emscripten::vecFromJSArray<std::string>(js_argv);
+
+        std::unique_ptr<interpreter_type> interpreter;
+        if (args.size() > 1)
+        {
+            std::vector<const char*> argv_vec;
+            for (const auto& s : args)
+            {
+                argv_vec.push_back(s.c_str());
+            }
+
+            int argc = static_cast<int>(argv_vec.size());
+            char** argv = const_cast<char**>(argv_vec.data());
+
+            interpreter = std::make_unique<interpreter_type>(argc, argv);
+        }
+        else
+        {
+            interpreter = std::make_unique<interpreter_type>();
+        }
+
         auto context = std::make_unique<xeus::xcontext_impl<empty_context_tag>>();
 
         xeus::xkernel * kernel = new xeus::xkernel(config,
