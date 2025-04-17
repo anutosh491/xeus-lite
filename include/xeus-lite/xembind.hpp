@@ -48,7 +48,7 @@ namespace xeus
         using history_manager_ptr = std::unique_ptr<xeus::xhistory_manager>;
         history_manager_ptr hist = xeus::make_in_memory_history_manager();
 
-        std::vector<std::string> args = emscripten::vecFromJSArray<std::string>(js_argv);
+        std::vector<std::string> args = ems::vecFromJSArray<std::string>(js_argv);
 
         std::unique_ptr<interpreter_type> interpreter;
         if (args.size() > 1)
